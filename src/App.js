@@ -159,7 +159,7 @@ class App extends Component {
         <header className="header">
           <h1>todos</h1>
           <Login model={this.props.model} onError={this.onError.bind(this)} auth={this.state.auth} onAuthChange={this.onAuthChange.bind(this)} />
-          {this.state.auth.authorization_token ? inputArea : ''}
+          {this.state.auth.faunadb_secret ? inputArea : ''}
         </header>
         {main}
         {footer}

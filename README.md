@@ -1,36 +1,27 @@
-# React TodoMVC Example
+# FaunaDB TodoMVC Single Page Application
 
-> React is a JavaScript library for creating user interfaces. Its core principles are declarative code, efficiency, and flexibility. Simply specify what your component looks like and React will keep it up-to-date when the underlying data changes.
-
-> _[React - facebook.github.io/react](http://facebook.github.io/react)_
-
-
-## Learning React
-
-The [React getting started documentation](http://facebook.github.io/react/docs/getting-started.html) is a great way to get started.
-
-Here are some links you may find helpful:
-
-* [Documentation](http://facebook.github.io/react/docs/getting-started.html)
-* [API Reference](http://facebook.github.io/react/docs/reference.html)
-* [Blog](http://facebook.github.io/react/blog/)
-* [React on GitHub](https://github.com/facebook/react)
-* [Support](http://facebook.github.io/react/support.html)
-
-Articles and guides from the community:
-
-* [How is Facebook's React JavaScript library](http://www.quora.com/React-JS-Library/How-is-Facebooks-React-JavaScript-library)
-* [React: Under the hood](http://www.quora.com/Pete-Hunt/Posts/React-Under-the-Hood)
-
-Get help from other React users:
-
-* [React on StackOverflow](http://stackoverflow.com/questions/tagged/reactjs)
-* [Discussion Forum](https://discuss.reactjs.org/)
-
-_If you have other helpful links to share, or find any of the links above no longer work, please [let us know](https://github.com/tastejs/todomvc/issues)._
-
+Have you ever wanted the simplest possible backend for your single page applications?
+One you don't have to pay for unless there's traffic to your page, and can stand up
+to even the most grueling loads. This version of TodoMVC uses [FaunaDB](http://fauna.com)
+to manage login, access control, and storing user data.
 
 ## Running
+
+Before you can launch the app, you need to create a FaunaDB database and provision
+some access keys. Once the database is set up, you'll run a script to populate the
+schema and access control rules.
+
+### Setup a free FaunaDB database
+
+FaunaDB is free to use for lightweight development and limited experimentation, so
+get up and running now and you'll be ready to use it for your other projects.
+
+* Sign up for free at https://fauna.com/sign-up
+* You'll be redirected to the dashboard.
+* Create a database, it doesn't matter what you call it.
+* Browse back to your root ("/") database, and then click Manage Keys.
+* Create a key with the `server` role, and paste the secret into `schema.js`
+* Create a key with the `client` role, and paste it into `Login.js`
 
 This project was bootstrapped with [Create React App](https://github.com/facebookincubator/create-react-app).
 

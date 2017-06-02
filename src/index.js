@@ -1,7 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import App from './App';
-import TodoModel from './todoModel'
+import TodoModel from './TodoModel'
 import 'todomvc-common/base.css';
 import 'todomvc-app-css/index.css';
 

@@ -1,97 +1,121 @@
 import React, {Component} from 'react';
 import './login.css'
 
-const authenticationEndpoint = process.env.NODE_ENV === "production" ?
-  'https://v23ym3h4j1.execute-api.us-east-1.amazonaws.com/prod'  :
-  'https://x1lh61dmmd.execute-api.us-east-1.amazonaws.com/dev';
+import faunadb, {query as q} from 'faunadb';
 
-function getQueryParams(qs) {
-  qs = qs.split('+').join(' ');
-  var params = {},
-    tokens,
-    re = /[?&]?([^=]+)=([^&]*)/g;
-  // eslint-disable-next-line
-  while (tokens = re.exec(qs)) {
-    params[decodeURIComponent(tokens[1])] = decodeURIComponent(tokens[2]);
-  }
-  return params;
-}
+const publicClient = new faunadb.Client({
+  secret: FAUNADB_CLIENT_SECRET
+});
 
-function saveTokens(authorization_token, refresh_token) {
-  if(authorization_token) {
-    localStorage.setItem('authorization_token', authorization_token);
-  }
-  if(refresh_token) {
-    localStorage.setItem('refresh_token', refresh_token);
+function saveTokens(faunadb_secret) {
+  console.log("saveTokens", faunadb_secret)
+  if(faunadb_secret) {
+    localStorage.setItem('faunadb_secret', faunadb_secret);
   }
 }
 
 function clearTokens() {
-  localStorage.removeItem('authorization_token');
-  localStorage.removeItem('refresh_token');
+  localStorage.removeItem('faunadb_secret');
 }
 
 function getTokens() {
+  console.log("getTokens", localStorage.getItem('faunadb_secret'))
   return {
-    authorization_token: localStorage.getItem('authorization_token'),
-    refresh_token: localStorage.getItem('refresh_token')
+    faunadb_secret: localStorage.getItem('faunadb_secret')
   }
 }
 
 class Login extends Component {
+  state = {
+  }
   componentWillMount() {
-    var clearPath = true, query = getQueryParams(document.location.search);
-    if (query.error) {
-      clearTokens();
-      this.props.onError(query.error);
-    } else if (query.authorization_token || query.refresh_token)  {
-      saveTokens(query.authorization_token, query.refresh_token);
-    } else {
-      clearPath = false
-    }
-    if (clearPath) {
-      window.history.replaceState({authorization_token: ''}, document.title, '/todomvc-fauna/');
-    }
-    this.authorized(true)
+    // check for login code
+    this.authorized(true);
   }
   doRefresh() {
     // called from the model when the is an auth error
-    console.log("doRefresh")
-    const refreshToken = getTokens().refresh_token;
-    if (refreshToken) {
-      this.props.model.isActive(true);
-      return fetch(authenticationEndpoint + '/authentication/refresh/' + refreshToken).then((r)=>{
-        this.props.model.isActive(false);
-        return r.json().then((data) => {
-          if (data.errorMessage) {
-            this.props.onError(data.errorMessage);
-          } else {
-            saveTokens(data.authorization_token, data.refresh_token);
-            this.authorized();
-          }
-        })
-      }).catch((e)=>{
-        this.props.model.isActive('error');
-        throw e;
-      })
-    }
+    console.log("doRefresh");
   }
   authorized(reload) {
     var tokens = getTokens();
-    if (tokens.authorization_token) {
+    if (tokens.faunadb_secret) {
       tokens.doRefresh = this.doRefresh.bind(this)
       this.props.onAuthChange(tokens, reload)
     } else {
       this.props.onAuthChange({})
     }
+    this.setState({show:""});
+  }
+  signup () {
+    this.setState({show:"Sign Up"});
+  }
+  login () {
+    this.setState({show:"Login"});
+  }
+  doShownForm(e) {
+    e.preventDefault();
+    this["do"+this.state.show]()
+  }
+  doLogin () {
+    console.log(this.state)
+    publicClient.query(q.Login(q.Match(q.Index("users_by_login"), this.state.login), {
+        password : this.state.password
+    })).then((key) => {
+      saveTokens(key.secret);
+      this.authorized(true);
+    })
+  }
+  ["doSign Up"] () {
+    console.log(this.state)
+    publicClient.query(
+      q.Create(q.Class("users"), {
+        credentials : {
+          password : this.state.password
+        },
+        // permissions : {
+          // read : q.Select("ref", q.Get(q.Ref("classes/users/self")))
+        // }
+        data : {
+          login : this.state.login
+        }
+    })).then(() => publicClient.query(
+      q.Login(q.Match(q.Index("users_by_login"), this.state.login), {
+        password : this.state.password
+    }))).then((key) => {
+      saveTokens(key.secret);
+      this.authorized(true);
+    });
+  }
+  doLogout () {
+    // remove credentials and refresh model
+    clearTokens();
+    this.authorized(true);
+  }
+  onChange(name, event) {
+    this.setState({[name]: event.target.value});
+  }
+  goBack(e) {
+    e.preventDefault();
+    this.setState({show : ""});
   }
 	render () {
-    const authURL = authenticationEndpoint + '/authentication/signin/facebook';
+    var actionForm = <span>
+        <a onClick={this.login.bind(this)}>Login</a> or <a onClick={this.signup.bind(this)}>Sign Up</a>
+      </span>;
+    if (this.state.show) {
+      actionForm = <form>
+        <a onClick={this.goBack.bind(this)}>&lt;&nbsp;</a>
+        <input onChange={this.onChange.bind(this, "login")} type="text" name="login"></input>
+        <input onChange={this.onChange.bind(this, "password")} type="password" name="password"></input>
+        <button onClick={this.doShownForm.bind(this)} type="submit">{this.state.show}</button>
+      </form>
+    }
 		return (
 			<div className="Login">
-        {this.props.auth.authorization_token ?
-          <a href="?error=logout" className="fbLogin"><div className="fbLogo"></div>Logout</a> :
-          <a href={authURL} className="fbLogin"><div className="fbLogo"></div>Login with Facebook</a> }
+        {this.props.auth.faunadb_secret ?
+          <a onClick={this.doLogout.bind(this)}>Logout</a> :
+          actionForm
+        }
       </div>
 		);
 	}
