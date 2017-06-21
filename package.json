@@ -1,6 +1,6 @@
 {
   "name": "todomvc-fauna",
-  "homepage": "https://fauna.github.io/todomvc-fauna",
+  "homepage": "https://fauna.github.io/todomvc-fauna-spa",
   "version": "0.1.0",
   "private": true,
   "dependencies": {
