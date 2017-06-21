@@ -43,23 +43,26 @@ class Login extends Component {
     } else {
       this.props.onAuthChange({})
     }
-    this.setState({
-      show: ""
-    });
+    this.setState({show:""});
   }
-  signup() {
-    this.setState({
-      show: "Sign Up"
-    });
+  signup () {
+    this.setState({show:"Sign Up"});
   }
-  login() {
-    this.setState({
-      show: "Login"
-    });
+  login () {
+    this.setState({show:"Login"});
   }
   doShownForm(e) {
     e.preventDefault();
-    this["do" + this.state.show]()
+    this["do"+this.state.show]()
+  }
+  doLogin () {
+    console.log(this.state)
+    publicClient.query(q.Login(q.Match(q.Index("users_by_login"), this.state.login), {
+        password : this.state.password
+    })).then((key) => {
+      saveTokens(key.secret);
+      this.authorized(true);
+    })
   }
   ["doSign Up"] () {
     console.log(this.state)
@@ -88,15 +91,11 @@ class Login extends Component {
     this.authorized(true);
   }
   onChange(name, event) {
-    this.setState({
-      [name]: event.target.value
-    });
+    this.setState({[name]: event.target.value});
   }
   goBack(e) {
     e.preventDefault();
-    this.setState({
-      show: ""
-    });
+    this.setState({show : ""});
   }
 	render () {
     var actionForm = <span>
