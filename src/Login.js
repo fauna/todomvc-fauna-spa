@@ -4,7 +4,7 @@ import './login.css'
 import faunadb, {query as q} from 'faunadb';
 
 const publicClient = new faunadb.Client({
-  secret: FAUNADB_CLIENT_SECRET
+  secret: "fnACW7G2d0ACAeiItklGS3QR-FW3sjHK3zwP1kus"
 });
 
 function saveTokens(faunadb_secret) {

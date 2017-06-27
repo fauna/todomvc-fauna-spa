@@ -4,7 +4,8 @@ import {Router} from 'director';
 import TodoFooter from './Footer';
 import TodoItem from './TodoItem';
 import Login from './Login';
-import {ALL_TODOS, ACTIVE_TODOS, COMPLETED_TODOS} from './utils'
+// import ListChooser from './ListChooser';
+import {ALL_LISTS, ALL_TODOS, ACTIVE_TODOS, COMPLETED_TODOS} from './utils'
 
 const ENTER_KEY = 13;
 
@@ -22,7 +23,7 @@ const ActivityIndicator = (props) => <div style={{
 
 class App extends Component {
   state = {
-      nowShowing: ALL_TODOS,
+      nowShowing: ALL_LISTS,
       editing: null,
       newTodo: '',
       auth : {}
@@ -30,9 +31,13 @@ class App extends Component {
   componentDidMount () {
     var setState = this.setState;
     var router = Router({
-      '/': setState.bind(this, {nowShowing: ALL_TODOS}),
-      '/active': setState.bind(this, {nowShowing: ACTIVE_TODOS}),
-      '/completed': setState.bind(this, {nowShowing: COMPLETED_TODOS})
+      '/': setState.bind(this, {nowShowing: ALL_LISTS}),
+      '/list/:listId/': (listId) =>
+        this.setState({listId: listId, nowShowing: ALL_TODOS}),
+      '/list/:listId/active': (listId) =>
+        this.setState({listId: listId, nowShowing: ACTIVE_TODOS}),
+      '/list/:listId/completed': (listId) =>
+        this.setState(this, {listId: listId, nowShowing: COMPLETED_TODOS})
     });
     router.init('/');
   }
@@ -84,67 +89,84 @@ class App extends Component {
     this.setState({error})
   }
   render () {
+    console.log("model", this.props.model);
     var footer;
     var main;
-    var todos = this.props.model.todos;
-
-    var shownTodos = todos.filter(function (todo) {
-      switch (this.state.nowShowing) {
-      case ACTIVE_TODOS:
-        return !todo.data.completed;
-      case COMPLETED_TODOS:
-        return todo.data.completed;
-      default:
-        return true;
-      }
-    }, this);
-
-    var todoItems = shownTodos.map(function (todo) {
-      return (
-        <TodoItem
-          key={todo.ref["@ref"]}
-          todo={todo.data}
-          onToggle={this.toggle.bind(this, todo)}
-          onDestroy={this.destroy.bind(this, todo)}
-          onEdit={this.edit.bind(this, todo)}
-          editing={this.state.editing === todo.ref}
-          onSave={this.save.bind(this, todo)}
-          onCancel={this.cancel.bind(this)}
-        />
-      );
-    }, this);
-
-    var activeTodoCount = todos.reduce(function (accum, todo) {
-      return (todo.data && todo.data.completed) ? accum : accum + 1;
-    }, 0);
-
-    var completedCount = todos.length - activeTodoCount;
-
-    if (activeTodoCount || completedCount) {
-      footer =
-        <TodoFooter
-          count={activeTodoCount}
-          completedCount={completedCount}
-          nowShowing={this.state.nowShowing}
-          onClearCompleted={this.clearCompleted.bind(this)}
-        />;
-    }
-
-    if (todos.length) {
+    if (this.state.nowShowing === ALL_LISTS) {
+      var lists = this.props.model.lists;
       main = (
         <section className="main">
-          <input
-            className="toggle-all"
-            type="checkbox"
-            onChange={this.toggleAll.bind(this)}
-            checked={activeTodoCount === 0}
-          />
           <ul className="todo-list">
-            {todoItems}
+            {lists.map(({data, ref}) => <li key={ref["@value"]} >
+            <label>
+              {data.title}
+            </label>
+            </li>)}
           </ul>
         </section>
       );
+    } else {
+      var todos = this.props.model.todos;
+
+      var shownTodos = todos.filter(function (todo) {
+        switch (this.state.nowShowing) {
+        case ACTIVE_TODOS:
+          return !todo.data.completed;
+        case COMPLETED_TODOS:
+          return todo.data.completed;
+        default:
+          return true;
+        }
+      }, this);
+
+      var todoItems = shownTodos.map(function (todo) {
+        return (
+          <TodoItem
+            key={todo.ref["@ref"]}
+            todo={todo.data}
+            onToggle={this.toggle.bind(this, todo)}
+            onDestroy={this.destroy.bind(this, todo)}
+            onEdit={this.edit.bind(this, todo)}
+            editing={this.state.editing === todo.ref}
+            onSave={this.save.bind(this, todo)}
+            onCancel={this.cancel.bind(this)}
+          />
+        );
+      }, this);
+
+      var activeTodoCount = todos.reduce(function (accum, todo) {
+        return (todo.data && todo.data.completed) ? accum : accum + 1;
+      }, 0);
+
+      var completedCount = todos.length - activeTodoCount;
+
+      if (activeTodoCount || completedCount) {
+        footer =
+          <TodoFooter
+            count={activeTodoCount}
+            completedCount={completedCount}
+            nowShowing={this.state.nowShowing}
+            onClearCompleted={this.clearCompleted.bind(this)}
+          />;
+      }
+
+      if (todos.length) {
+        main = (
+          <section className="main">
+            <input
+              className="toggle-all"
+              type="checkbox"
+              onChange={this.toggleAll.bind(this)}
+              checked={activeTodoCount === 0}
+            />
+            <ul className="todo-list">
+              {todoItems}
+            </ul>
+          </section>
+        );
+      }
     }
+    // when new todo is created in lists view, item is added to default list
     const inputArea = <input
         className="new-todo"
         placeholder="What needs to be done?"

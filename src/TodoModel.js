@@ -7,6 +7,7 @@ export default class TodoModel {
   constructor(key) {
     this.key = key;
     this.todos = [];
+    this.lists = [];
     // this.auth = {}
     this.onChanges = [];
     this.active = false; // todo add observer to client
@@ -18,7 +19,7 @@ export default class TodoModel {
 
   inform(reload = true) {
     if (reload) {
-      this.getServerTodos().then(() => {
+      this.getServerLists().then(() => this.getServerTodos()).then(() => {
         this.onChanges.forEach(function(cb) {
           cb();
         });
@@ -34,6 +35,7 @@ export default class TodoModel {
 
   onAuthChange(auth, reload) {
     this.todos = [];
+    this.lists = [];
     this.client = new faunadb.Client({
       secret: auth.faunadb_secret
     });
@@ -49,6 +51,36 @@ export default class TodoModel {
     // console.log('isActive', is);
     this.active = is
     this.inform(false)
+  }
+
+  getServerLists() {
+    return this.client.query(
+      q.Map(
+        q.Paginate(
+          q.Match(
+            q.Ref("indexes/all_lists"))), (ref) => q.Get(ref))).then((r) => {
+      console.log("getServerLists", r)
+      if (r.data.length === 0) {
+        // create the first list for the user
+        const me = q.Select("ref", q.Get(
+          q.Ref("classes/users/self")));
+
+        return this.client.query(
+          q.Create(q.Class("lists"), {
+            data : {
+              title : "Default",
+              owner : q.Select("ref", q.Get(q.Ref("classes/users/self")))
+          },
+          permissions: {
+            read: me,
+            write: me
+          }
+        })
+        ).then((defaultList) => this.lists = [defaultList]);
+      } else {
+        this.lists = r.data;
+      }
+    });
   }
 
   getServerTodos() {
