@@ -6,6 +6,7 @@ const q = faunadb.query;
 export default class TodoModel {
   constructor(key) {
     this.key = key;
+    this.list = null;
     this.todos = [];
     this.lists = [];
     // this.auth = {}
@@ -20,6 +21,10 @@ export default class TodoModel {
   inform(reload = true) {
     if (reload) {
       this.getServerLists().then(() => {
+        if (this.list) {
+          return this.getList(this.list.ref.value.split('/').pop())
+        }
+      }).then(() => {
         this.onChanges.forEach(function(cb) {
           cb();
         });
@@ -34,6 +39,7 @@ export default class TodoModel {
   }
 
   onAuthChange(auth, reload) {
+    this.list = null;
     this.todos = [];
     this.lists = [];
     this.client = new faunadb.Client({
@@ -98,12 +104,14 @@ export default class TodoModel {
     // return {list, todos}
     return this.client.query(q.Get(q.Ref("classes/lists/"+id)))
       .then((list) => {
-        console.log("getList!", list);
+        // console.log("getList!", list);
+        this.list = list;
         return this.client.query(q.Map(
           q.Paginate(q.Match(q.Index("todos_by_list"),list.ref)),
           (ref) => q.Get(ref)
         )).then(resp => {
-          console.log("got todos", resp);
+          // console.log("got todos", resp);
+          this.todos = resp.data;
           return {list, todos: resp.data}
         })
       });

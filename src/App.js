@@ -34,13 +34,13 @@ class App extends Component {
       '/': setState.bind(this, {list : false, nowShowing: ALL_LISTS}),
       '/list/:listId/': (listId) =>
         this.props.model.getList(listId)
-        .then(({list, todos}) => this.setState({list, todos, nowShowing: ALL_TODOS})),
+        .then(({list}) => this.setState({list, nowShowing: ALL_TODOS})),
       '/list/:listId/active': (listId) =>
         this.props.model.getList(listId)
-        .then(({list, todos}) => this.setState({list, todos, nowShowing: ACTIVE_TODOS})),
+        .then(({list}) => this.setState({list, nowShowing: ACTIVE_TODOS})),
       '/list/:listId/completed': (listId) =>
         this.props.model.getList(listId)
-        .then(({list, todos}) => this.setState({list, todos, nowShowing: COMPLETED_TODOS}))
+        .then(({list}) => this.setState({list, nowShowing: COMPLETED_TODOS}))
     });
     router.init('/');
   }
@@ -131,7 +131,7 @@ class App extends Component {
         <label>Choose a list.</label>
       </div>
     } else {
-      var todos = this.state.todos;
+      var todos = this.props.model.todos;
 
       listNavigator = <div className="listNav">
         <label>{this.state.list && this.state.list.data.title}</label>
