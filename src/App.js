@@ -54,7 +54,11 @@ class App extends Component {
     var val = this.state.newTodo.trim();
 
     if (val) {
-      this.props.model.addTodo(val);
+      if (this.state.nowShowing == ALL_LISTS) {
+        this.props.model.addList(val);
+      } else {
+        this.props.model.addTodo(val);
+      }
       this.setState({newTodo: ''});
     }
   }
@@ -92,6 +96,7 @@ class App extends Component {
     console.log("model", this.props.model);
     var footer;
     var main;
+    var inputArea;
     if (this.state.nowShowing === ALL_LISTS) {
       var lists = this.props.model.lists;
       main = (
@@ -105,6 +110,14 @@ class App extends Component {
           </ul>
         </section>
       );
+      inputArea = <input
+          className="new-todo"
+          placeholder="Create a new list or choose from below."
+          value={this.state.newTodo}
+          onKeyDown={this.handleNewTodoKeyDown.bind(this)}
+          onChange={this.handleChange.bind(this)}
+          autoFocus={true}
+        />;
     } else {
       var todos = this.props.model.todos;
 
@@ -165,16 +178,15 @@ class App extends Component {
           </section>
         );
       }
+      inputArea = <input
+          className="new-todo"
+          placeholder="What needs to be done?"
+          value={this.state.newTodo}
+          onKeyDown={this.handleNewTodoKeyDown.bind(this)}
+          onChange={this.handleChange.bind(this)}
+          autoFocus={true}
+        />;
     }
-    // when new todo is created in lists view, item is added to default list
-    const inputArea = <input
-        className="new-todo"
-        placeholder="What needs to be done?"
-        value={this.state.newTodo}
-        onKeyDown={this.handleNewTodoKeyDown.bind(this)}
-        onChange={this.handleChange.bind(this)}
-        autoFocus={true}
-      />;
     return (
       <div>
         <ActivityIndicator error={this.state.error} active={this.props.model.active}/>

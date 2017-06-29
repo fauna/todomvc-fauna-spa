@@ -57,7 +57,7 @@ export default class TodoModel {
     return this.client.query(
       q.Map(
         q.Paginate(
-          q.Match(
+          q.Match( // todo use lists_by_owner
             q.Ref("indexes/all_lists"))), (ref) => q.Get(ref))).then((r) => {
       console.log("getServerLists", r)
       if (r.data.length === 0) {
@@ -92,6 +92,28 @@ export default class TodoModel {
       console.log("getServerTodos", r)
       this.todos = r.data;
     });
+  }
+
+  addList(title) {
+    var newList = {
+      title: title
+    };
+
+    const me = q.Select("ref", q.Get(
+      q.Ref("classes/users/self")));
+    newList.owner = me;
+
+    return this.client.query(
+      q.Create(
+        q.Class("lists"), {
+          data: newList,
+          permissions: {
+            read: me,
+            write: me
+          }
+        })).then((r) => {
+      this.inform()
+    })
   }
 
   addTodo(title) {
