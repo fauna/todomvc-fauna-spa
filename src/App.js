@@ -34,13 +34,13 @@ class App extends Component {
       '/': setState.bind(this, {list : false, nowShowing: ALL_LISTS}),
       '/list/:listId/': (listId) =>
         this.props.model.getList(listId)
-        .then((list) => this.setState({list, nowShowing: ALL_TODOS})),
+        .then(({list, todos}) => this.setState({list, todos, nowShowing: ALL_TODOS})),
       '/list/:listId/active': (listId) =>
         this.props.model.getList(listId)
-        .then((list) => this.setState({list, nowShowing: ACTIVE_TODOS})),
+        .then(({list, todos}) => this.setState({list, todos, nowShowing: ACTIVE_TODOS})),
       '/list/:listId/completed': (listId) =>
         this.props.model.getList(listId)
-        .then((list) => this.setState({list, nowShowing: COMPLETED_TODOS}))
+        .then(({list, todos}) => this.setState({list, todos, nowShowing: COMPLETED_TODOS}))
     });
     router.init('/');
   }
@@ -210,7 +210,7 @@ class App extends Component {
         <header className="header">
           <h1>todos</h1>
           <Login model={this.props.model} onError={this.onError.bind(this)} auth={this.state.auth} onAuthChange={this.onAuthChange.bind(this)} />
-          {listNavigator}
+          {this.state.auth.faunadb_secret ? listNavigator : ''}
           {this.state.auth.faunadb_secret ? inputArea : ''}
         </header>
         {main}

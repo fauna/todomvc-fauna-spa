@@ -19,7 +19,7 @@ export default class TodoModel {
 
   inform(reload = true) {
     if (reload) {
-      this.getServerLists().then(() => this.getServerTodos()).then(() => {
+      this.getServerLists().then(() => {
         this.onChanges.forEach(function(cb) {
           cb();
         });
@@ -83,19 +83,30 @@ export default class TodoModel {
     });
   }
 
-  getServerTodos() {
-    return this.client.query(
-      q.Map(
-        q.Paginate(
-          q.Match(
-            q.Ref("indexes/all_todos"))), (ref) => q.Get(ref))).then((r) => {
-      console.log("getServerTodos", r)
-      this.todos = r.data;
-    });
-  }
+  // getServerTodos() {
+  //   return this.client.query(
+  //     q.Map(
+  //       q.Paginate(
+  //         q.Match(
+  //           q.Ref("indexes/all_todos"))), (ref) => q.Get(ref))).then((r) => {
+  //     console.log("getServerTodos", r)
+  //     this.todos = r.data;
+  //   });
+  // }
 
   getList(id) {
-    return this.client.query(q.Get(q.Ref("classes/lists/"+id)));
+    // return {list, todos}
+    return this.client.query(q.Get(q.Ref("classes/lists/"+id)))
+      .then((list) => {
+        console.log("getList!", list);
+        return this.client.query(q.Map(
+          q.Paginate(q.Match(q.Index("todos_by_list"),list.ref)),
+          (ref) => q.Get(ref)
+        )).then(resp => {
+          console.log("got todos", resp);
+          return {list, todos: resp.data}
+        })
+      });
   }
 
   addList(title) {
