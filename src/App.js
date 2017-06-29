@@ -31,16 +31,22 @@ class App extends Component {
   componentDidMount () {
     var setState = this.setState;
     var router = Router({
-      '/': setState.bind(this, {nowShowing: ALL_LISTS}),
+      '/': setState.bind(this, {list : false, nowShowing: ALL_LISTS}),
       '/list/:listId/': (listId) =>
-        this.setState({listId: listId, nowShowing: ALL_TODOS}),
+        this.props.model.getList(listId)
+        .then((list) => this.setState({list, nowShowing: ALL_TODOS})),
       '/list/:listId/active': (listId) =>
-        this.setState({listId: listId, nowShowing: ACTIVE_TODOS}),
+        this.props.model.getList(listId)
+        .then((list) => this.setState({list, nowShowing: ACTIVE_TODOS})),
       '/list/:listId/completed': (listId) =>
-        this.setState(this, {listId: listId, nowShowing: COMPLETED_TODOS})
+        this.props.model.getList(listId)
+        .then((list) => this.setState({list, nowShowing: COMPLETED_TODOS}))
     });
     router.init('/');
   }
+  // componentWillReceiveProps() {
+  //   console.log(this, arguments)
+  // }
   handleChange (event) {
     this.setState({newTodo: event.target.value});
   }
@@ -92,9 +98,12 @@ class App extends Component {
   onError(error) {
     this.setState({error})
   }
+  go(link) {
+    window.location.hash = link;
+  }
   render () {
     console.log("model", this.props.model);
-    var footer;
+    var footer, listNavigator;
     var main;
     var inputArea;
     if (this.state.nowShowing === ALL_LISTS) {
@@ -102,8 +111,8 @@ class App extends Component {
       main = (
         <section className="main">
           <ul className="todo-list">
-            {lists.map(({data, ref}) => <li key={ref["@value"]} >
-            <label>
+            {lists.map(({data, ref}) => <li key={ref.value} >
+            <label onClick={this.go.bind(this, "/list/"+ref.value.split('/').pop())}>
               {data.title}
             </label>
             </li>)}
@@ -118,8 +127,16 @@ class App extends Component {
           onChange={this.handleChange.bind(this)}
           autoFocus={true}
         />;
+      listNavigator = <div className="listNav">
+        <label>Choose a list.</label>
+      </div>
     } else {
       var todos = this.props.model.todos;
+
+      listNavigator = <div className="listNav">
+        <label>{this.state.list && this.state.list.data.title}</label>
+        <button onClick={this.go.bind(this, "/")}>back to all lists</button>
+      </div>
 
       var shownTodos = todos.filter(function (todo) {
         switch (this.state.nowShowing) {
@@ -193,6 +210,7 @@ class App extends Component {
         <header className="header">
           <h1>todos</h1>
           <Login model={this.props.model} onError={this.onError.bind(this)} auth={this.state.auth} onAuthChange={this.onAuthChange.bind(this)} />
+          {listNavigator}
           {this.state.auth.faunadb_secret ? inputArea : ''}
         </header>
         {main}

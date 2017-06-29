@@ -94,6 +94,10 @@ export default class TodoModel {
     });
   }
 
+  getList(id) {
+    return this.client.query(q.Get(q.Ref("classes/lists/"+id)));
+  }
+
   addList(title) {
     var newList = {
       title: title
