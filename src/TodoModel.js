@@ -131,9 +131,10 @@ export default class TodoModel {
     })
   }
 
-  addTodo(title) {
+  addTodo(title, list) {
     var newTodo = {
       title: title,
+      list: list.ref,
       completed: false
     };
 

@@ -70,7 +70,6 @@ client.query(
         terms: [{
           field: ['data', 'list']
         }],
-        unique: true,
         permissions: {
           read: q.Class("users")
         }

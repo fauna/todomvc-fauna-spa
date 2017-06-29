@@ -63,7 +63,7 @@ class App extends Component {
       if (this.state.nowShowing == ALL_LISTS) {
         this.props.model.addList(val);
       } else {
-        this.props.model.addTodo(val);
+        this.props.model.addTodo(val, this.state.list);
       }
       this.setState({newTodo: ''});
     }
@@ -131,7 +131,7 @@ class App extends Component {
         <label>Choose a list.</label>
       </div>
     } else {
-      var todos = this.props.model.todos;
+      var todos = this.state.todos;
 
       listNavigator = <div className="listNav">
         <label>{this.state.list && this.state.list.data.title}</label>
