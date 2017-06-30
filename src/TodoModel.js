@@ -200,14 +200,14 @@ export default class TodoModel {
     })).then((r) => this.inform())
   }
 
-  clearCompleted() {
+  clearCompleted(list) {
     return this.client.query(
         q.Map(
           q.Paginate(
-            q.Match(
-              q.Ref("indexes/all_todos"))), (ref) => q.If(
-            q.Select(["data", "completed"], q.Get(ref)),
-            q.Delete(q.Select("ref", q.Get(ref))), true)))
+            q.Match(q.Index("todos_by_list"), list.ref)),
+            (ref) => q.If(
+              q.Select(["data", "completed"], q.Get(ref)),
+              q.Delete(q.Select("ref", q.Get(ref))), true)))
       .then((r) => this.inform());
   }
 };

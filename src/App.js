@@ -89,7 +89,7 @@ class App extends Component {
     this.setState({editing: null});
   }
   clearCompleted () {
-    this.props.model.clearCompleted();
+    this.props.model.clearCompleted(this.state.list);
   }
   onAuthChange(auth, reload) {
     this.setState({auth})
