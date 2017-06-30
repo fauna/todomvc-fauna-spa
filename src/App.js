@@ -70,7 +70,7 @@ class App extends Component {
   }
   toggleAll (event) {
     var checked = event.target.checked;
-    this.props.model.toggleAll(checked);
+    this.props.model.toggleAll(checked, this.state.list);
   }
   toggle (todoToToggle) {
     this.props.model.toggle(todoToToggle);

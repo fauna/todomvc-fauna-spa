@@ -163,17 +163,17 @@ export default class TodoModel {
     })
   }
 
-  toggleAll(checked) {
+  toggleAll(checked, list) {
     return this.client.query(
       q.Map(
         q.Paginate(
-          q.Match(
-            q.Ref("indexes/all_todos"))), (ref) => q.Update(q.Select("ref",
-          q.Get(ref)), {
-          data: {
-            completed: q.Not(q.Select(["data", "completed"], q.Get(ref)))
-          }
-        }))).then((r) => {
+          q.Match(q.Index("todos_by_list"), list.ref)),
+          (ref) => q.Update(q.Select("ref",
+            q.Get(ref)), {
+              data: {
+                completed: q.Not(q.Select(["data", "completed"], q.Get(ref)))
+              }
+    }))).then((r) => {
       this.inform();
     });
   }
