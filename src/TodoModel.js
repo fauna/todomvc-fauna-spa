@@ -195,9 +195,9 @@ export default class TodoModel {
   }
 
   save(todoToSave, text) {
-    return this.client.query(q.Update(todoToSave.ref), {
-      data: todoToSave.data
-    }).then((r) => this.inform())
+    return this.client.query(q.Update(todoToSave.ref, {
+      data: {title:text}
+    })).then((r) => this.inform())
   }
 
   clearCompleted() {
