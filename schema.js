@@ -7,7 +7,7 @@ const q = faunadb.query;
 // You also need to create a client key to paste into FAUNADB_CLIENT_SECRET
 // in src/Login.js
 const client = new faunadb.Client({
-  secret: "fnACW7GtaMACAYnZPsdbQ0u5M_EOFKBy8T61pgjd"
+  secret: MY_FAUNADB_SERVER_SECRET
 });
 
 client.query(
