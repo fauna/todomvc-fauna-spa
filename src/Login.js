@@ -4,12 +4,12 @@ import './login.css'
 import faunadb, {query as q} from 'faunadb';
 
 const publicClient = new faunadb.Client({
-  secret: FAUNADB_CLIENT_SECRET
+  secret: "fnACW7G2d0ACAeiItklGS3QR-FW3sjHK3zwP1kus"
 });
 
 function saveTokens(faunadb_secret) {
   console.log("saveTokens", faunadb_secret)
-  if(faunadb_secret) {
+  if (faunadb_secret) {
     localStorage.setItem('faunadb_secret', faunadb_secret);
   }
 }
@@ -26,8 +26,7 @@ function getTokens() {
 }
 
 class Login extends Component {
-  state = {
-  }
+  state = {}
   componentWillMount() {
     // check for login code
     this.authorized(true);

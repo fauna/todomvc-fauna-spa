@@ -11,40 +11,70 @@ const client = new faunadb.Client({
 });
 
 client.query(
-  q.CreateClass({
-    name: "users",
-    permissions: { create: "public" }
-  }))
-  .then(() => client.query(
-    q.Create(q.Ref('indexes'), {
-      name: 'users_by_login',
-      source: q.Class("users"),
-      terms: [{ field: ['data', 'login'] }],
-      unique: true,
+    q.CreateClass({
+      name: "users",
       permissions: {
-        read : "public"
+        create: "public"
       }
-  })))
+    }))
   .then(() => client.query(
-    q.Create(q.Ref('indexes'), {
-      // this index is optional but useful in development for browsing users
-      name: `all_users`,
-      source: q.Class("users")
-  })))
+    q.Do(
+      q.CreateClass({
+        name: "todos",
+        permissions: {
+          create: q.Class("users")
+        }
+      }),
+      q.CreateClass({
+        name: "lists",
+        permissions: {
+          create: q.Class("users")
+        }
+      })
+    )))
   .then(() => client.query(
-    q.Create(q.Ref("classes"), {
-      name: "todos",
-      permissions: {
-        create : q.Class("users")
-      }
-  })))
-  .then(() => client.query(
-    q.Create(q.Ref("indexes"), {
-      name: "all_todos",
-      source: q.Class("todos"),
-      permissions: {
-        read : q.Class("users")
-      }
-  })))
+    q.Do(
+      q.CreateIndex({
+        name: 'users_by_login',
+        source: q.Class("users"),
+        terms: [{
+          field: ['data', 'login']
+        }],
+        unique: true,
+        permissions: {
+          read: "public"
+        }
+      }),
+      q.CreateIndex({
+        // this index is optional but useful in development for browsing users
+        name: `all_users`,
+        source: q.Class("users")
+      }),
+      q.CreateIndex({
+        name: "all_todos",
+        source: q.Class("todos"),
+        permissions: {
+          read: q.Class("users")
+        }
+      }),
+      q.CreateIndex({
+        name: "all_lists",
+        source: q.Class("lists"),
+        permissions: {
+          read: q.Class("users")
+        }
+      }),
+      q.CreateIndex({
+        name: 'todos_by_list',
+        source: q.Class("todos"),
+        terms: [{
+          field: ['data', 'list']
+        }],
+        permissions: {
+          read: q.Class("users")
+        }
+      })
+    )
+  ))
   .then(console.log.bind(console))
   .catch(console.error.bind(console))
