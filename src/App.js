@@ -60,7 +60,7 @@ class App extends Component {
     var val = this.state.newTodo.trim();
 
     if (val) {
-      if (this.state.nowShowing == ALL_LISTS) {
+      if (this.state.nowShowing === ALL_LISTS) {
         this.props.model.addList(val);
       } else {
         this.props.model.addTodo(val, this.state.list);
