@@ -91,9 +91,9 @@ class App extends Component {
   clearCompleted () {
     this.props.model.clearCompleted(this.state.list);
   }
-  onAuthChange(auth, reload) {
+  onAuthChange(auth, inform) {
     this.setState({auth})
-    this.props.model.onAuthChange(auth, reload);
+    this.props.model.onAuthChange(auth, inform);
   }
   onError(error) {
     this.setState({error})

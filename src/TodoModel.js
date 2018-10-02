@@ -18,8 +18,8 @@ export default class TodoModel {
     this.onChanges.push(onChange);
   }
 
-  inform(reload = true) {
-    if (reload) {
+  inform(inform = true) {
+    if (inform) {
       this.getServerLists().then(() => {
         if (this.list) {
           return this.getList(this.list.ref.value.split('/').pop())
@@ -38,7 +38,7 @@ export default class TodoModel {
     }
   }
 
-  onAuthChange(auth, reload) {
+  onAuthChange(auth, inform) {
     this.list = null;
     this.todos = [];
     this.lists = [];
@@ -46,9 +46,9 @@ export default class TodoModel {
       secret: auth.faunadb_secret
     });
 
-    console.log("onAuthChange", auth, reload);
+    console.log("onAuthChange", auth, inform);
 
-    if (reload) {
+    if (inform) {
       this.inform()
     }
   }

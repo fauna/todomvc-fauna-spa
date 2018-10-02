@@ -29,17 +29,20 @@ class Login extends Component {
   state = {}
   componentWillMount() {
     // check for login code
-    this.authorized(true);
+    this.authorized(false);
   }
   doRefresh() {
     // called from the model when the is an auth error
     console.log("doRefresh");
   }
   authorized(reload) {
+    if (reload) {
+      return window.history.go(0);
+    }
     var tokens = getTokens();
     if (tokens.faunadb_secret) {
       tokens.doRefresh = this.doRefresh.bind(this)
-      this.props.onAuthChange(tokens, reload)
+      this.props.onAuthChange(tokens, true)
     } else {
       this.props.onAuthChange({})
     }
@@ -61,7 +64,7 @@ class Login extends Component {
         password : this.state.password
     })).then((key) => {
       saveTokens(key.secret);
-      this.authorized(true);
+      this.authorized(false);
     })
   }
   ["doSign Up"] () {
