@@ -8,6 +8,7 @@
     "director": "^1.2.8",
     "faunadb": "1.1.1",
     "fetch": "^1.1.0",
+    "netlify-identity-widget": "^1.4.14",
     "react": "^15.4.2",
     "react-dom": "^15.4.2",
     "superagent": "^3.5.1",
@@ -15,6 +16,7 @@
     "todomvc-common": "^1.0.1"
   },
   "devDependencies": {
+    "eslint": "^5.6.1",
     "gh-pages": "^0.12.0",
     "react-scripts": "0.9.5"
   },

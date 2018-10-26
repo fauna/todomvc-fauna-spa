@@ -1,7 +1,26 @@
-import React, {Component} from 'react';
 import './login.css'
+import React, {Component} from 'react';
 
 import faunadb, {query as q} from 'faunadb';
+
+import netlifyIdentity from "netlify-identity-widget";
+netlifyIdentity.init();
+
+function saveLogin() {
+   if (netlifyIdentity && netlifyIdentity.currentUser()) {
+     const {
+       app_metadata, created_at, confirmed_at, email, id, user_metadata
+     } = netlifyIdentity.currentUser();
+
+     localStorage.setItem(
+       "faunaNetlifyUser",
+       JSON.stringify({app_metadata, created_at, confirmed_at, email, id, user_metadata})
+     );
+   }
+ }
+function clearLogin() {
+   localStorage.removeItem("faunaNetlifyUser");
+ }
 
 const publicClient = new faunadb.Client({
   secret: "fnACW7G2d0ACAeiItklGS3QR-FW3sjHK3zwP1kus"
@@ -19,21 +38,30 @@ function clearTokens() {
 }
 
 function getTokens() {
-  console.log("getTokens", localStorage.getItem('faunadb_secret'))
+  console.log("getTokens faunaNetlifyUser", localStorage.getItem('faunaNetlifyUser'))
   return {
     faunadb_secret: localStorage.getItem('faunadb_secret')
   }
 }
 
 class Login extends Component {
-  state = {}
+  constructor(props) {
+    super(props);
+    this.state = {}
+  }
   componentWillMount() {
     // check for login code
     this.authorized(false);
   }
-  doRefresh() {
-    // called from the model when the is an auth error
-    console.log("doRefresh");
+  componentDidMount() {
+    const user = localStorage.getItem("faunaNetlifyUser");
+    if (user) {
+      this.setState({user: JSON.parse(user)});
+    } else {
+      saveLogin();
+    }
+    netlifyIdentity.on("login", (user) => this.setState({user}, saveLogin()));
+    netlifyIdentity.on("logout", (user) => this.setState({user: null}, clearLogin()));
   }
   authorized(reload) {
     if (reload) {
@@ -41,77 +69,53 @@ class Login extends Component {
     }
     var tokens = getTokens();
     if (tokens.faunadb_secret) {
-      tokens.doRefresh = this.doRefresh.bind(this)
       this.props.onAuthChange(tokens, true)
     } else {
       this.props.onAuthChange({})
     }
-    this.setState({show:""});
-  }
-  signup () {
-    this.setState({show:"Sign Up"});
   }
   login () {
-    this.setState({show:"Login"});
+    netlifyIdentity.open()
   }
-  doShownForm(e) {
-    e.preventDefault();
-    this["do"+this.state.show]()
-  }
-  doLogin () {
-    console.log(this.state)
-    publicClient.query(q.Login(q.Match(q.Index("users_by_login"), this.state.login), {
-        password : this.state.password
-    })).then((key) => {
-      saveTokens(key.secret);
-      this.authorized(false);
-    })
-  }
-  ["doSign Up"] () {
-    console.log(this.state)
-    publicClient.query(
-      q.Create(q.Class("users"), {
-        credentials : {
-          password : this.state.password
-        },
-        // permissions : {
-          // read : q.Select("ref", q.Get(q.Ref("classes/users/self")))
-        // }
-        data : {
-          login : this.state.login
-        }
-    })).then(() => publicClient.query(
-      q.Login(q.Match(q.Index("users_by_login"), this.state.login), {
-        password : this.state.password
-    }))).then((key) => {
-      saveTokens(key.secret);
-      this.authorized(true);
-    });
-  }
+  // doLogin () {
+  //   console.log(this.state)
+  //   publicClient.query(q.Login(q.Match(q.Index("users_by_login"), this.state.login), {
+  //       password : this.state.password
+  //   })).then((key) => {
+  //     saveTokens(key.secret);
+  //     this.authorized(false);
+  //   })
+  // }
+  // ["doSign Up"] () {
+  //   console.log(this.state)
+  //   publicClient.query(
+  //     q.Create(q.Class("users"), {
+  //       credentials : {
+  //         password : this.state.password
+  //       },
+  //       // permissions : {
+  //         // read : q.Select("ref", q.Get(q.Ref("classes/users/self")))
+  //       // }
+  //       data : {
+  //         login : this.state.login
+  //       }
+  //   })).then(() => publicClient.query(
+  //     q.Login(q.Match(q.Index("users_by_login"), this.state.login), {
+  //       password : this.state.password
+  //   }))).then((key) => {
+  //     saveTokens(key.secret);
+  //     this.authorized(true);
+  //   });
+  // }
   doLogout () {
     // remove credentials and refresh model
     clearTokens();
     this.authorized(true);
   }
-  onChange(name, event) {
-    this.setState({[name]: event.target.value});
-  }
-  goBack(e) {
-    e.preventDefault();
-    this.setState({show : ""});
-  }
 	render () {
     var actionForm = <span>
-        <a onClick={this.login.bind(this)}>Login</a> or <a onClick={this.signup.bind(this)}>Sign Up</a>
+        <a onClick={this.login.bind(this)}>Login or Sign Up</a>
       </span>;
-    if (this.state.show) {
-      actionForm = <form>
-        <a onClick={this.goBack.bind(this)}>&lt;&nbsp;</a>
-        <input onChange={this.onChange.bind(this, "login")} type="text" name="login"></input>
-        <input onChange={this.onChange.bind(this, "password")} type="password" name="password"></input>
-        <button onClick={this.doShownForm.bind(this)} type="submit">{this.state.show}</button>
-      </form>
-    }
 		return (
 			<div className="Login">
         {this.props.auth.faunadb_secret ?

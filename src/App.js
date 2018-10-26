@@ -22,11 +22,14 @@ const ActivityIndicator = (props) => <div style={{
   </div>
 
 class App extends Component {
-  state = {
-      nowShowing: ALL_LISTS,
-      editing: null,
-      newTodo: '',
-      auth : {}
+  constructor(props) {
+    super(props);
+    this.state = {
+        nowShowing: ALL_LISTS,
+        editing: null,
+        newTodo: '',
+        auth : {}
+    }
   }
   componentDidMount () {
     var setState = this.setState;
