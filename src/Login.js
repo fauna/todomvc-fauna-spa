@@ -116,7 +116,6 @@ class Login extends Component {
     netlifyIdentity.logout();
     clearLogin();
     this.setState({user:null})
-    // this.authorized(true);
   }
 	render () {
     var actionForm = <span>
