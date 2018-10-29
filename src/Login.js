@@ -16,6 +16,7 @@ function saveLogin() {
        "faunaNetlifyUser",
        JSON.stringify({app_metadata, created_at, confirmed_at, email, id, user_metadata})
      );
+     return {app_metadata, created_at, confirmed_at, email, id, user_metadata};
    }
  }
 function clearLogin() {
@@ -26,23 +27,23 @@ const publicClient = new faunadb.Client({
   secret: "fnACW7G2d0ACAeiItklGS3QR-FW3sjHK3zwP1kus"
 });
 
-function saveTokens(faunadb_secret) {
-  console.log("saveTokens", faunadb_secret)
-  if (faunadb_secret) {
-    localStorage.setItem('faunadb_secret', faunadb_secret);
-  }
-}
+// function saveTokens(faunadb_secret) {
+//   console.log("saveTokens", faunadb_secret)
+//   if (faunadb_secret) {
+//     localStorage.setItem('faunadb_secret', faunadb_secret);
+//   }
+// }
+//
+// function clearTokens() {
+//   localStorage.removeItem('faunadb_secret');
+// }
 
-function clearTokens() {
-  localStorage.removeItem('faunadb_secret');
-}
-
-function getTokens() {
-  console.log("getTokens faunaNetlifyUser", localStorage.getItem('faunaNetlifyUser'))
-  return {
-    faunadb_secret: localStorage.getItem('faunadb_secret')
-  }
-}
+// function getTokens() {
+//   console.log("getTokens faunaNetlifyUser", localStorage.getItem('faunaNetlifyUser'))
+//   return {
+//     faunadb_secret: localStorage.getItem('faunadb_secret')
+//   }
+// }
 
 class Login extends Component {
   constructor(props) {
@@ -54,11 +55,14 @@ class Login extends Component {
     this.authorized(false);
   }
   componentDidMount() {
-    const user = localStorage.getItem("faunaNetlifyUser");
-    if (user) {
-      this.setState({user: JSON.parse(user)});
+    const storedUser = localStorage.getItem("faunaNetlifyUser");
+    if (storedUser) {
+      this.setState({user: JSON.parse(storedUser)});
     } else {
-      saveLogin();
+      const netlifyUser = saveLogin(); // does calling user pop a thing? should we set state?
+      if (netlifyUser) {
+        this.setState({user: netlifyUser});
+      }
     }
     netlifyIdentity.on("login", (user) => this.setState({user}, saveLogin()));
     netlifyIdentity.on("logout", (user) => this.setState({user: null}, clearLogin()));
@@ -67,12 +71,12 @@ class Login extends Component {
     if (reload) {
       return window.history.go(0);
     }
-    var tokens = getTokens();
-    if (tokens.faunadb_secret) {
-      this.props.onAuthChange(tokens, true)
-    } else {
-      this.props.onAuthChange({})
-    }
+    // var tokens = getTokens();
+    // if (tokens.faunadb_secret) {
+    //   this.props.onAuthChange(tokens, true)
+    // } else {
+    //   this.props.onAuthChange({})
+    // }
   }
   login () {
     netlifyIdentity.open()
@@ -109,8 +113,10 @@ class Login extends Component {
   // }
   doLogout () {
     // remove credentials and refresh model
-    clearTokens();
-    this.authorized(true);
+    netlifyIdentity.logout();
+    clearLogin();
+    this.setState({user:null})
+    // this.authorized(true);
   }
 	render () {
     var actionForm = <span>
@@ -118,7 +124,7 @@ class Login extends Component {
       </span>;
 		return (
 			<div className="Login">
-        {this.props.auth.faunadb_secret ?
+        {this.state.user ?
           <a onClick={this.doLogout.bind(this)}>Logout</a> :
           actionForm
         }
