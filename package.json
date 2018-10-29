@@ -18,11 +18,13 @@
   "devDependencies": {
     "eslint": "^5.6.1",
     "gh-pages": "^0.12.0",
+    "netlify-lambda": "^0.4.0",
     "react-scripts": "0.9.5"
   },
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
+    "build:functions": "netlify-lambda build functions -c ./webpack.config.js",
     "test": "react-scripts test --env=jsdom",
     "eject": "react-scripts eject",
     "predeploy": "npm run build",
